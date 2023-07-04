@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 4609242820759342556}
   - component: {fileID: 431935019364403956}
   - component: {fileID: 5038635365168523122}
-  - component: {fileID: -3473039315115428368}
+  - component: {fileID: 8057366104435453262}
   m_Layer: 3
   m_Name: FloorEven
   m_TagString: Untagged
@@ -120,7 +120,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isHighlighted: 0
---- !u!114 &-3473039315115428368
+--- !u!114 &8057366104435453262
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -129,22 +129,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8455493479554640489}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53e43d2e297792e46b59dec8d4431f20, type: 3}
+  m_Script: {fileID: 11500000, guid: 2fda0c47e07d1604fa0c0d8fb8899844, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameEvent: {fileID: 11400000, guid: b730009ae6029aa46a98754f166b3dec, type: 2}
-  unityEvent:
-    m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 5038635365168523122}
-        m_TargetAssemblyTypeName: HighlightController, Assembly-CSharp
-        m_MethodName: HandleMouseHover
-        m_Mode: 0
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+  mouseClickEvent: {fileID: 11400000, guid: e083f2d92f44cc446885ded22c917898, type: 2}
