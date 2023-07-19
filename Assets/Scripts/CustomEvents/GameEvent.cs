@@ -43,4 +43,24 @@ namespace Assets.Scripts.CustomEvents
             _action -= listener;
         }
     }
+
+    public class GameEvent<T,U>
+    {
+        private event Action<T,U> _action;
+
+        public void Invoke(T param, U param2)
+        {
+            _action.Invoke(param, param2);
+        }
+
+        public void AddListener(Action<T,U> listener)
+        {
+            _action += listener;
+        }
+
+        public void RemoveListener(Action<T,U> listener)
+        {
+            _action -= listener;
+        }
+    }
 }
