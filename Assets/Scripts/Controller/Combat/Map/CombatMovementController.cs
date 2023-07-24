@@ -4,7 +4,7 @@ using Assets.Scripts.CustomEvents;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CombatController : MonoBehaviour
+public class CombatMovementController : MonoBehaviour
 {
     public static CombatMap Map;
 

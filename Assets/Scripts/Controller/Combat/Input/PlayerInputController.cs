@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.Scripts.Controller
 {
@@ -8,6 +7,7 @@ namespace Assets.Scripts.Controller
         private bool _isCurrentUnitPlayerControlled = false;
         private int _currUnitInstanceId = 0;
 
+        #region Event Subscription
 
         // Use this for initialization
         void OnEnable()
@@ -20,6 +20,7 @@ namespace Assets.Scripts.Controller
             CustomEvents.CustomEvents.StartTurnEvent.RemoveListener(OnStartTurn);
         }
 
+        #endregion
 
 
         // Update is called once per frame
@@ -29,6 +30,7 @@ namespace Assets.Scripts.Controller
             {
                 CustomEvents.CustomEvents.EndTurnEvent.Invoke(_currUnitInstanceId);
             }
+
         }
 
         #region Event Listeners

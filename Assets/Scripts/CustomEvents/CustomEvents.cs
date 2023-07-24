@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Assets.Scripts.ScriptableObjets.Abilities;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,5 +20,12 @@ namespace Assets.Scripts.CustomEvents
         // int : GO InstanceID - bool : isPlayerControlledUnit
         public static GameEvent<int,bool> StartTurnEvent = new GameEvent<int,bool>();
         public static GameEvent<int> EndTurnEvent = new GameEvent<int>();
+
+        public static GameEvent<Ability> SelectAbilityEvent = new GameEvent<Ability>();
+
+        public static GameEvent<int> UnitClickEvent = new GameEvent<int>();
+        public static GameEvent UnselectAbilityEvent = new GameEvent();
+
+        public static GameEvent<int, int> DamageUnitEvent = new GameEvent<int, int>();
     }
 }

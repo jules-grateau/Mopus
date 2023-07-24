@@ -10,9 +10,9 @@ namespace Assets.Scripts.Controller.Combat.UI
         GameObject[] _unit;
         TextMeshProUGUI _tmp;
 
-        void Start()
+        private void Awake()
         {
-            _tmp = GetComponent<TextMeshProUGUI>();   
+            _tmp = GetComponent<TextMeshProUGUI>();
         }
 
         private void OnEnable()

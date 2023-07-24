@@ -15,28 +15,38 @@ namespace Assets.Scripts.Controller
         [SerializeField]
         private UnitInfo _unitInfo;
 
-        bool isMoving = false;
+        bool _isMoving = false;
+        int _damageTaken = 0;
+        GameObject _floatingTextPrefabs;
+
+        private void Awake()
+        {
+            _floatingTextPrefabs = (GameObject) Resources.Load("Prefabs/UI/FloatingText");
+        }
+
 
         private void OnEnable()
         {
             CustomEvents.UnitMovementEvent.AddListener(MoveTo);
+            CustomEvents.DamageUnitEvent.AddListener(OnUnitTakeDamage);
         }
 
         private void OnDisable()
         {
             CustomEvents.UnitMovementEvent.RemoveListener(MoveTo);
+            CustomEvents.DamageUnitEvent.RemoveListener(OnUnitTakeDamage);
         }
 
         private void MoveTo(int instanceId, List<Vector3> path)
         {
             if (gameObject.GetInstanceID() != instanceId) return;
-            if (isMoving) return;
+            if (_isMoving) return;
             StartCoroutine(MoveThrought(path));
         }
 
         IEnumerator MoveThrought(List<Vector3> path)
         {
-            isMoving = true;
+            _isMoving = true;
             CustomEvents.UnitMovementStatusEvent.Invoke(gameObject.GetInstanceID(),true);
             while (path.Count > 0)
             {
@@ -46,8 +56,17 @@ namespace Assets.Scripts.Controller
                 yield return new WaitForSeconds(0.1f);
                 CustomEvents.UnitMovementPreviewEvent.Invoke(path);
             }
-            isMoving = false;
+            _isMoving = false;
             CustomEvents.UnitMovementStatusEvent.Invoke(gameObject.GetInstanceID(),false);
+        }
+
+        void OnUnitTakeDamage(int instanceId, int damage)
+        {
+            if (instanceId != gameObject.GetInstanceID()) return;
+            
+            _damageTaken += damage;
+            GameObject floatingDamageText = Instantiate(_floatingTextPrefabs,transform);
+            floatingDamageText.GetComponent<FloatingCombatTextAnimation>().Init(damage);
         }
     }
 }
