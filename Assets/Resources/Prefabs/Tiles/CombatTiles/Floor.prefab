@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 5775385944918642202}
   - component: {fileID: 3655146907335105749}
   - component: {fileID: 3239113382732237084}
-  - component: {fileID: 6693072582301541939}
   - component: {fileID: 4286169616207842807}
   - component: {fileID: 7744397424427256218}
   m_Layer: 0
@@ -35,7 +34,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
+  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &5775385944918642202
 MeshFilter:
@@ -44,7 +43,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2076738522810630784}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: -1750125985355865389, guid: 04387a5a895e5154f82a3bd25075c8d7, type: 3}
 --- !u!23 &3655146907335105749
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -53,7 +52,7 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2076738522810630784}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 0
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -65,7 +64,8 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 22287782d30ff8f408a6afa86cb15b55, type: 2}
+  - {fileID: 2100000, guid: 7d56695e1e83c714c9d9121d10a3ee15, type: 2}
+  - {fileID: 2100000, guid: 0b87ecdd4921f104aa750078249a3da0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -107,21 +107,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6693072582301541939
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2076738522810630784}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: af37f23d1825f644e9bb32aaea410d8f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Name: Floor
-  IsWalkable: 1
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!114 &4286169616207842807
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -134,6 +120,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4de14d8c8c4cb3443a370a997ae40d37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Name: Floor
+  IsWalkable: 1
 --- !u!114 &7744397424427256218
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146,3 +134,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1f514ba6852e4c0429a223980f1f4d69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Hightcolor: {r: 0.13207549, g: 0.13207549, b: 0.13207549, a: 1}

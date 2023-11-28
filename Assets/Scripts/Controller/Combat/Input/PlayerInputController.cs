@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Events;
+using UnityEngine;
 
 namespace Assets.Scripts.Controller
 {
@@ -12,12 +13,12 @@ namespace Assets.Scripts.Controller
         // Use this for initialization
         void OnEnable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.AddListener(OnStartTurn);
+            CustomEvents.StartTurnEvent.AddListener(OnStartTurn);
         }
 
         private void OnDisable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.RemoveListener(OnStartTurn);
+            CustomEvents.StartTurnEvent.RemoveListener(OnStartTurn);
         }
 
         #endregion
@@ -28,7 +29,7 @@ namespace Assets.Scripts.Controller
         {
             if(Input.GetKeyDown("space") && _isCurrentUnitPlayerControlled)
             {
-                CustomEvents.CustomEvents.EndTurnEvent.Invoke(_currUnitInstanceId);
+                CustomEvents.EndTurnEvent.Invoke(_currUnitInstanceId);
             }
 
         }

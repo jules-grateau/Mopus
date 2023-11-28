@@ -1,7 +1,6 @@
-﻿using Assets.Scripts.ScriptableObjets.Abilities;
+﻿using Assets.Scripts.Events;
+using Assets.Scripts.ScriptableObjets.Abilities;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -19,12 +18,12 @@ namespace Assets.Scripts.Controller.Combat.UI
 
         private void OnEnable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.AddListener(OnTurnStart);
+            CustomEvents.StartTurnEvent.AddListener(OnTurnStart);
         }
 
         private void OnDisable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.RemoveListener(OnTurnStart);
+            CustomEvents.StartTurnEvent.RemoveListener(OnTurnStart);
         }
 
         void OnTurnStart(int instanceId, bool isPlayerControlled)
@@ -43,18 +42,18 @@ namespace Assets.Scripts.Controller.Combat.UI
             
             foreach(Tuple<KeyCode,Ability> abilitySlot in abilitiesManager.GetAbilityList())
             {
-                AddAbilitySlot(abilitySlot.Item1, abilitySlot.Item2);
+                AddAbilitySlot(abilitySlot.Item1, abilitySlot.Item2, currentTurnUnit);
             }
 
 
         }
 
-        void AddAbilitySlot(KeyCode keyCode, Ability ability)
+        void AddAbilitySlot(KeyCode keyCode, Ability ability, GameObject currentTurnUnit)
         {
             GameObject abilitySlot = Instantiate(_abilitySlotPrefab,transform);
 
             AbilitySlotController abilitySlotController = abilitySlot.GetComponent<AbilitySlotController>();
-            abilitySlotController.Init(ability, keyCode.ToString());
+            abilitySlotController.Init(ability, keyCode.ToString(), currentTurnUnit);
 
         }
 

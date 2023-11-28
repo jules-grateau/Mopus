@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Events;
 using UnityEngine;
 
 namespace Assets.Scripts.Controller.Combat.Enemies
@@ -8,7 +8,7 @@ namespace Assets.Scripts.Controller.Combat.Enemies
 
         private void OnMouseDown()
         {
-            CustomEvents.CustomEvents.UnitClickEvent.Invoke(gameObject.GetInstanceID());
+            CustomEvents.UnitClickEvent.Invoke(gameObject.GetInstanceID());
         }
     }
 }

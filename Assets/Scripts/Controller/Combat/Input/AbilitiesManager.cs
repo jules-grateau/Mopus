@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.ScriptableObjets.Abilities;
+using Assets.Scripts.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,12 +25,12 @@ namespace Assets.Scripts.Controller.Combat
         #region Event Subcription
         void OnEnable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.AddListener(OnTurnStart);
+            CustomEvents.StartTurnEvent.AddListener(OnTurnStart);
         }
 
         void OnDisable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.RemoveListener(OnTurnStart);
+            CustomEvents.StartTurnEvent.RemoveListener(OnTurnStart);
         }
         #endregion
         void Awake()
@@ -50,13 +51,13 @@ namespace Assets.Scripts.Controller.Combat
             {
                 if (Input.GetKeyDown(key))
                 {
-                    CustomEvents.CustomEvents.SelectAbilityEvent.Invoke(GetAbilityAt(key));
+                    CustomEvents.SelectAbilityEvent.Invoke(GetAbilityAt(key), gameObject);
                 }
             });
 
             if(Input.GetKeyDown(KeyCode.Escape))
             {
-                CustomEvents.CustomEvents.UnselectAbilityEvent.Invoke();
+                CustomEvents.UnselectAbilityEvent.Invoke();
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using Assets.Scripts.Events;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -17,12 +17,12 @@ namespace Assets.Scripts.Controller.Combat.UI
 
         private void OnEnable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.AddListener(OnStartTurn);
+            CustomEvents.StartTurnEvent.AddListener(OnStartTurn);
         }
 
         private void OnDisable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.RemoveListener(OnStartTurn);
+            CustomEvents.StartTurnEvent.RemoveListener(OnStartTurn);
         }
 
         void OnStartTurn(int instanceId, bool isPlayerControlled)

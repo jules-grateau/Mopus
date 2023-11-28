@@ -15,12 +15,17 @@ namespace Assets.Scripts.ScriptableObjets.Abilities
         [SerializeField]
         string _name;
 
-        public Range Range => _range;
+        public int MinRange => _minRange;
         [SerializeField]
-        Range _range;
+        int _minRange;
+
+        public int MaxRange => _maxRange;
+        [SerializeField]
+        int _maxRange;
 
         public int Damage => _damage;
         [SerializeField]
         int _damage;
+
     }
 }

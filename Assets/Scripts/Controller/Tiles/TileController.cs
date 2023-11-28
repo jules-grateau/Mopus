@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.CustomEvents;
+﻿using Assets.Scripts.Events;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,7 +11,7 @@ namespace Assets.Scripts.Controller.Tiles
 
         private void OnMouseDown()
         {
-            CustomEvents.CustomEvents.TileClickEvent.Invoke(transform.position);
+            CustomEvents.TileClickEvent.Invoke(transform.position);
         }
     }
 }

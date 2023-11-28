@@ -1,7 +1,6 @@
-using UnityEditor.PackageManager;
+using Assets.Scripts.Events;
 using UnityEngine;
 using UnityEngine.AI;
-using Assets.Scripts.CustomEvents;
 
 public class PlayerMouvementController : MonoBehaviour
 {

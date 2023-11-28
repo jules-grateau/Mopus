@@ -1,15 +1,19 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
+using UnityEditor.Tilemaps;
 using UnityEngine;
+using static Unity.VisualScripting.Member;
 
 namespace Assets.Scripts.Controller
 {
     public class CombatMap
     {
-        Dictionary<(float, float), TileType> _mapTiles;
+        Dictionary<(float, float), CombatTileController> _mapTiles;
         List<(float,float)> _obstacles;
         Dictionary<(float, float), Node> _graph;
+
+        List<Vector3> _currPreviewedPath = null;
+        List<Vector3> _currPreviewRange = null;
 
         public CombatMap(GameObject[] tiles, GameObject[] obstacles)
         {
@@ -26,11 +30,11 @@ namespace Assets.Scripts.Controller
 
         void InitializeMapTiles(GameObject[] tiles)
         {
-            _mapTiles = new Dictionary<(float, float), TileType>();
+            _mapTiles = new Dictionary<(float, float), CombatTileController>();
 
             foreach (GameObject go in tiles)
             {
-                _mapTiles.Add((go.transform.position.x, go.transform.position.z), go.GetComponent<TileType>());
+                _mapTiles.Add((go.transform.position.x, go.transform.position.z), go.GetComponent<CombatTileController>());
             }
         }
 
@@ -121,8 +125,6 @@ namespace Assets.Scripts.Controller
                 shortestPathAsVector.Add(new Vector3(node.x, 0, node.z));
             }
             return shortestPathAsVector;
-
-
         }
 
         // Return shortest path to adjacents tile to the target, null if not reachable
@@ -161,6 +163,64 @@ namespace Assets.Scripts.Controller
                 shortestPathAsVector.Add(new Vector3(node.x, 0, node.z));
             }
             return shortestPathAsVector;
+        }
+
+        public List<Vector3> GetInRangePosition(Vector3 origin, int minRange, int maxRange)
+        {
+            Node source = _graph[(origin.x, origin.z)];
+
+            var distance = CalculateNodeDistances(source);
+            distance = distance.Where(node => node.Value <= maxRange && node.Value >= minRange).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            return distance.Select(node => new Vector3(node.Key.x,0,node.Key.z)).ToList();
+        }
+
+        public void PreviewPath(List<Vector3> path)
+        {
+            foreach(Vector3 pos in path)
+            {
+                var tile = _mapTiles.GetValueOrDefault((pos.x, pos.z));
+                tile.HightLightMovement(true);
+            }
+
+            _currPreviewedPath = path;
+        }
+
+        public void PreviewRange(List<Vector3> range)
+        {
+            foreach(Vector3 pos in range)
+            {
+                var tile = _mapTiles.GetValueOrDefault((pos.x, pos.z));
+                tile.HightLightRange(true);
+            }
+
+            _currPreviewRange = range;
+        }
+
+        public void ClearPreviewPath()
+        {
+            if (_currPreviewedPath == null) return;
+
+            foreach (Vector3 pos in _currPreviewedPath)
+            {
+                var tile = _mapTiles.GetValueOrDefault((pos.x, pos.z));
+                tile.HightLightMovement(false);
+            }
+
+            _currPreviewedPath = null;
+        }
+
+        public void ClearPreviewRange()
+        {
+            if (_currPreviewRange == null) return;
+
+            foreach (Vector3 pos in _currPreviewRange)
+            {
+                var tile = _mapTiles.GetValueOrDefault((pos.x, pos.z));
+                tile.HightLightRange(false);
+            }
+
+            _currPreviewRange = null;
         }
 
         (Dictionary<Node, float>, Dictionary<Node, Node>) CalculateShortestPath(Node source, Node target)
@@ -206,6 +266,48 @@ namespace Assets.Scripts.Controller
 
             return (distance, prev);
         }
+
+        Dictionary<Node, float> CalculateNodeDistances(Node source)
+        {
+            Dictionary<Node, float> distance = new Dictionary<Node, float>();
+
+            foreach(Node node in _graph.Values)
+            {
+                distance.Add(node, node.DistanceTo(source, true));
+            }
+
+            /*List<Node> unvisited = new List<Node>();
+
+            //Calculation Setup
+            distance.Add(source, 0f);
+
+            foreach (Node node in _graph.Values)
+            {
+                if (node != source)
+                {
+                    distance.Add(node, Mathf.Infinity);
+                }
+                unvisited.Add(node);
+            }
+
+            while (unvisited.Count > 0)
+            {
+                Node closest = unvisited.OrderBy(node => distance[node]).First();
+
+                unvisited.Remove(closest);
+
+                foreach (Node node in closest.GetNeighbors())
+                {
+                    float distanceTo = distance[closest] + closest.DistanceTo(node, true);
+                    if (distanceTo <= distance[node])
+                    {
+                        distance[node] = distanceTo;
+                    }
+                }
+            }*/
+
+            return distance;
+        }
     }
 
     class Node
@@ -233,13 +335,11 @@ namespace Assets.Scripts.Controller
             return Neighbors;
         }
 
-        public float DistanceTo(Node node)
+        public float DistanceTo(Node node, bool ignoreObstacle = false)
         {
-            if (!node.isWalkable) return Mathf.Infinity;
+            if (!ignoreObstacle && !node.isWalkable) return Mathf.Infinity;
 
-            return Vector2.Distance(
-                new Vector2(x, z),
-                new Vector2(node.x, node.z));
+            return Mathf.Abs(x - node.x) + Mathf.Abs(z - node.z);
         }
     }
 }

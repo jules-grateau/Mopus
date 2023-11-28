@@ -1,5 +1,5 @@
-﻿using Assets.Scripts.ScriptableObjets.Abilities;
-using System.Collections;
+﻿using Assets.Scripts.Events;
+using Assets.Scripts.ScriptableObjets.Abilities;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,17 +15,17 @@ namespace Assets.Scripts.Controller.Combat.UI
 
         void OnEnable()
         {
-            CustomEvents.CustomEvents.SelectAbilityEvent.AddListener(OnSelectAbility);
-            CustomEvents.CustomEvents.UnselectAbilityEvent.AddListener(OnUnselectAbility);
+            CustomEvents.SelectAbilityEvent.AddListener(OnSelectAbility);
+            CustomEvents.UnselectAbilityEvent.AddListener(OnUnselectAbility);
         }
 
         void OnDisable()
         {
-            CustomEvents.CustomEvents.SelectAbilityEvent.RemoveListener(OnSelectAbility);
-            CustomEvents.CustomEvents.UnselectAbilityEvent.RemoveListener(OnUnselectAbility);
+            CustomEvents.SelectAbilityEvent.RemoveListener(OnSelectAbility);
+            CustomEvents.UnselectAbilityEvent.RemoveListener(OnUnselectAbility);
         }
 
-        void OnSelectAbility(Ability ability)
+        void OnSelectAbility(Ability ability, GameObject unit)
         {
             _icon.gameObject.SetActive(true);
             _icon.sprite = ability.Icon;

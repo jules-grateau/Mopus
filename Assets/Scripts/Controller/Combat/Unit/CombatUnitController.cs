@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Controller.Types;
+using Assets.Scripts.Events;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,8 +7,6 @@ using UnityEngine;
 
 namespace Assets.Scripts.Controller
 {
-    using CustomEvents;
-
     public class CombatUnitController : MonoBehaviour
     {
 
@@ -54,7 +53,6 @@ namespace Assets.Scripts.Controller
                 transform.position = new Vector3(tile.x, transform.position.y, tile.z);
                 path.Remove(tile);
                 yield return new WaitForSeconds(0.1f);
-                CustomEvents.UnitMovementPreviewEvent.Invoke(path);
             }
             _isMoving = false;
             CustomEvents.UnitMovementStatusEvent.Invoke(gameObject.GetInstanceID(),false);

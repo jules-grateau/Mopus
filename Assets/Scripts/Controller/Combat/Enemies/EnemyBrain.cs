@@ -1,7 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Assets.Scripts.Events;
 
 namespace Assets.Scripts.Controller.Combat.Enemies
 {
@@ -17,14 +17,14 @@ namespace Assets.Scripts.Controller.Combat.Enemies
 
         private void OnEnable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.AddListener(OnTurnStart);
-            CustomEvents.CustomEvents.UnitMovementStatusEvent.AddListener(OnMovementStatusEvent);
+            CustomEvents.StartTurnEvent.AddListener(OnTurnStart);
+            CustomEvents.UnitMovementStatusEvent.AddListener(OnMovementStatusEvent);
         }
 
         private void OnDisable()
         {
-            CustomEvents.CustomEvents.StartTurnEvent.RemoveListener(OnTurnStart);
-            CustomEvents.CustomEvents.UnitMovementStatusEvent.RemoveListener(OnMovementStatusEvent);
+            CustomEvents.StartTurnEvent.RemoveListener(OnTurnStart);
+            CustomEvents.UnitMovementStatusEvent.RemoveListener(OnMovementStatusEvent);
         }
 
         void OnTurnStart(int instanceId, bool isPlayerControlled) 
@@ -42,7 +42,7 @@ namespace Assets.Scripts.Controller.Combat.Enemies
 
             foreach(GameObject target in targets)
             {
-                var targetPath = CombatMovementController.Map.GetShortestPathToAdjacent(gameObject.transform.position, target.transform.position);
+                var targetPath = CombatController.Map.GetShortestPathToAdjacent(gameObject.transform.position, target.transform.position);
                 if (shortestPath == null)
                 {
                     shortestPath = targetPath;
@@ -54,20 +54,18 @@ namespace Assets.Scripts.Controller.Combat.Enemies
 
             if(shortestPath == null)
             {
-                CustomEvents.CustomEvents.EndTurnEvent.Invoke(gameObject.GetInstanceID());
+                CustomEvents.EndTurnEvent.Invoke(gameObject.GetInstanceID());
                 return;
             }
 
-            Vector3 targetTile;
-            if(shortestPath.Count < _combatUnitController.UnitInfo.Stats.MovementPoint)
+
+            if(shortestPath.Count > _combatUnitController.UnitInfo.Stats.MovementPoint)
             {
-                targetTile = shortestPath[shortestPath.Count - 1];
-            } else
-            {
-                targetTile = shortestPath[_combatUnitController.UnitInfo.Stats.MovementPoint - 1];
+                shortestPath = shortestPath.Take(_combatUnitController.UnitInfo.Stats.MovementPoint).ToList();
             }
 
-            CustomEvents.CustomEvents.TileClickEvent.Invoke(targetTile);
+            CustomEvents.UnitMovementEvent.Invoke(gameObject.GetInstanceID(), shortestPath);
+
         }
 
         void OnMovementStatusEvent(int instanceId, bool isMoving)
@@ -76,7 +74,7 @@ namespace Assets.Scripts.Controller.Combat.Enemies
 
             if(!isMoving)
             {
-                CustomEvents.CustomEvents.EndTurnEvent.Invoke(gameObject.GetInstanceID());
+                CustomEvents.EndTurnEvent.Invoke(gameObject.GetInstanceID());
             }
         }
     }
