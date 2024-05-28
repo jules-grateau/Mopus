@@ -15,12 +15,14 @@ namespace Assets.Scripts.Controller
         private UnitInfo _unitInfo;
 
         bool _isMoving = false;
-        int _damageTaken = 0;
+        int _currHp = 0; 
+        //TODO : Externalize damage visualisation
         GameObject _floatingTextPrefabs;
 
         private void Awake()
         {
             _floatingTextPrefabs = (GameObject) Resources.Load("Prefabs/UI/FloatingText");
+            _currHp = _unitInfo.Stats.Health;
         }
 
 
@@ -61,8 +63,8 @@ namespace Assets.Scripts.Controller
         void OnUnitTakeDamage(int instanceId, int damage)
         {
             if (instanceId != gameObject.GetInstanceID()) return;
-            
-            _damageTaken += damage;
+
+            _currHp -= damage;
             GameObject floatingDamageText = Instantiate(_floatingTextPrefabs,transform);
             floatingDamageText.GetComponent<FloatingCombatTextAnimation>().Init(damage);
         }

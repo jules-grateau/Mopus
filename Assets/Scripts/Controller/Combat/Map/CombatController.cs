@@ -193,6 +193,11 @@ public class CombatController : MonoBehaviour
     public void OnEndTurn(int instanceId)
     {
         _currUnitIndex = _currUnitIndex == _units.Length - 1 ? 0 : _currUnitIndex + 1;
+
+        if(_selectedAbility && instanceId == _selectedAbilityUnit.GetInstanceID())
+        {
+            CustomEvents.UnselectAbilityEvent.Invoke();
+        }
         InitGameTurn();
     }
 
