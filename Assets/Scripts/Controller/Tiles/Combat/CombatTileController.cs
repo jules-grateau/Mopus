@@ -1,8 +1,9 @@
+using Assets.Scripts.Controller.Combat;
 using Assets.Scripts.Events;
 using Assets.Scripts.ScriptableObjets.Parameters;
 using UnityEngine;
 
-public class CombatTileController : MonoBehaviour
+public class CombatTileController : CombatMonoBehavior
 {
     public string Name;
     public bool IsWalkable;
@@ -15,11 +16,8 @@ public class CombatTileController : MonoBehaviour
     ColorsParams colorsParams;
     HighlightController highlightController;
 
-    MeshRenderer meshRenderer;
-
     private void Start()
     {
-        meshRenderer = GetComponent<MeshRenderer>();
         highlightController = GetComponent<HighlightController>();
 
         colorsParams = Resources.Load<ColorsParams>("ScriptableObjects/Parameters/ColorsParams");

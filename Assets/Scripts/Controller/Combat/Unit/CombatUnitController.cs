@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Controller.Combat.UI;
+﻿using Assets.Scripts.Controller.Combat;
+using Assets.Scripts.Controller.Combat.UI;
 using Assets.Scripts.Controller.Types;
 using Assets.Scripts.Events;
 using System.Collections;
@@ -8,7 +9,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Controller
 {
-    public class CombatUnitController : MonoBehaviour
+    public class CombatUnitController : CombatMonoBehavior
     {
 
         public UnitInfo UnitInfo { get { return _unitInfo; } }
@@ -33,17 +34,25 @@ namespace Assets.Scripts.Controller
             _currHp = _unitInfo.Stats.Health;
         }
 
-
-        private void OnEnable()
+        private void OnDestroy()
         {
+            if (_unitInfoUIInstance) Destroy(_unitInfoUIInstance);
+        }
+
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
             CustomEvents.UnitMovementEvent.AddListener(MoveTo);
             CustomEvents.DamageUnitEvent.AddListener(OnUnitTakeDamage);
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             CustomEvents.UnitMovementEvent.RemoveListener(MoveTo);
             CustomEvents.DamageUnitEvent.RemoveListener(OnUnitTakeDamage);
+
         }
 
         private void MoveTo(int instanceId, List<Vector3> path)
@@ -72,11 +81,20 @@ namespace Assets.Scripts.Controller
         {
             if (instanceId != gameObject.GetInstanceID()) return;
 
-            _currHp -= damage;
+            _currHp = damage >= _currHp ? 0 : _currHp - damage;
+
             GameObject floatingDamageText = Instantiate(_floatingTextPrefabs,transform);
             floatingDamageText.GetComponent<FloatingCombatTextAnimation>().Init(damage);
 
             _unitInfoUIInstance.GetComponent<UnitInfoUIController>().UpdateCurrHp(_currHp);
+
+            if (_currHp == 0) Death();
+        }
+
+        void Death()
+        {
+            CustomEvents.UnitDeathEvent.Invoke(gameObject.GetInstanceID());
+            Destroy(gameObject);
         }
 
         private void OnMouseEnter()

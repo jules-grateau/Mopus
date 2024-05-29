@@ -1,5 +1,5 @@
-﻿using Assets.Scripts.ScriptableObjets.Abilities;
-using Assets.Scripts.Events;
+﻿using Assets.Scripts.Events;
+using Assets.Scripts.ScriptableObjets.Abilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Assets.Scripts.Controller.Combat
 {
     //TODO : Move to SpellBar controller.
-    public class AbilitiesManager : MonoBehaviour
+    public class AbilitiesManager : CombatMonoBehavior
     {
 
         Dictionary<KeyCode, Ability> _abilitiesMap;
@@ -23,13 +23,15 @@ namespace Assets.Scripts.Controller.Combat
         bool _isPlayingTurn = false;
 
         #region Event Subcription
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             CustomEvents.StartTurnEvent.AddListener(OnTurnStart);
         }
 
-        void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             CustomEvents.StartTurnEvent.RemoveListener(OnTurnStart);
         }
         #endregion

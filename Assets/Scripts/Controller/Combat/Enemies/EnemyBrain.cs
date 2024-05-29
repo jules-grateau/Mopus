@@ -1,12 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Assets.Scripts.Events;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Assets.Scripts.Events;
 
 namespace Assets.Scripts.Controller.Combat.Enemies
 {
-    [RequireComponent(typeof(CombatUnitController))]
-    public class EnemyBrain : MonoBehaviour
+    public class EnemyBrain : CombatMonoBehavior
     {
         CombatUnitController _combatUnitController;
 
@@ -15,20 +14,24 @@ namespace Assets.Scripts.Controller.Combat.Enemies
             _combatUnitController = GetComponent<CombatUnitController>();
         }
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             CustomEvents.StartTurnEvent.AddListener(OnTurnStart);
             CustomEvents.UnitMovementStatusEvent.AddListener(OnMovementStatusEvent);
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             CustomEvents.StartTurnEvent.RemoveListener(OnTurnStart);
             CustomEvents.UnitMovementStatusEvent.RemoveListener(OnMovementStatusEvent);
         }
 
         void OnTurnStart(int instanceId, bool isPlayerControlled) 
         {
+            if (!_combatUnitController) return;
+
             var i = gameObject.GetInstanceID();
             var e = gameObject.name;
 

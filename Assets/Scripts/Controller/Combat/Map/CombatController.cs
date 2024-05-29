@@ -1,18 +1,17 @@
 using Assets.Scripts.Controller;
+using Assets.Scripts.Controller.Combat;
 using Assets.Scripts.Controller.Types;
 using Assets.Scripts.Events;
 using Assets.Scripts.ScriptableObjets.Abilities;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Playables;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
-public class CombatController : MonoBehaviour
+public class CombatController : CombatMonoBehavior
 {
     public static CombatMap Map;
 
-    GameObject[] _units;
+    List<GameObject> _units;
 
     int _currUnitIndex = 0; 
     CombatStatistics _currUnitCombatStats;
@@ -26,9 +25,9 @@ public class CombatController : MonoBehaviour
     void Start()
     {
         GameObject[] tiles = GameObject.FindGameObjectsWithTag("CombatTile");
-        _units = GameObject.FindGameObjectsWithTag("Unit");
+        _units = GameObject.FindGameObjectsWithTag("Unit").ToList();
 
-        Map = new CombatMap(tiles, _units);
+        Map = new CombatMap(tiles, _units.ToArray());
 
         InitGameTurn();
     }
@@ -47,8 +46,9 @@ public class CombatController : MonoBehaviour
 
 
     #region Event Listeners
-    private void OnEnable()
+    protected override void OnEnable()
     {
+        base.OnEnable();
         CustomEvents.SelectAbilityEvent.AddListener(OnSelectAbility);
         CustomEvents.TileClickEvent.AddListener(OnTileClick);
         CustomEvents.TileHoverEvent.AddListener(OnTileHover);
@@ -57,10 +57,12 @@ public class CombatController : MonoBehaviour
         CustomEvents.EndTurnEvent.AddListener(OnEndTurn);
         CustomEvents.UnitClickEvent.AddListener(OnUnitClick);
         CustomEvents.UnselectAbilityEvent.AddListener(OnUnselectAbility);
+        CustomEvents.UnitDeathEvent.AddListener(OnUnitDie);
     }
 
-    private void OnDisable()
+    protected override void OnDisable()
     {
+        base.OnDisable();
         CustomEvents.SelectAbilityEvent.RemoveListener(OnSelectAbility);
         CustomEvents.TileClickEvent.RemoveListener(OnTileClick);
         CustomEvents.TileHoverEvent.RemoveListener(OnTileHover);
@@ -69,6 +71,7 @@ public class CombatController : MonoBehaviour
         CustomEvents.EndTurnEvent.RemoveListener(OnEndTurn);
         CustomEvents.UnitClickEvent.RemoveListener(OnUnitClick);
         CustomEvents.UnselectAbilityEvent.RemoveListener(OnUnselectAbility);
+        CustomEvents.UnitDeathEvent.RemoveListener(OnUnitDie);
     }
 
     void OnTileClick(Vector3 pos)
@@ -110,7 +113,7 @@ public class CombatController : MonoBehaviour
     {
         if (_isUnitMoving) return;
 
-        Map.UpdateObstacles(_units);
+        Map.UpdateObstacles(_units.ToArray());
         List<Vector3> shortestPathAsVector = Map.GetShortestPathTo(GetCurrentUnitPosition(), destination);
 
 
@@ -142,7 +145,7 @@ public class CombatController : MonoBehaviour
     {
         if (_isUnitMoving || _selectedAbility) return;
 
-        Map.UpdateObstacles(_units);
+        Map.UpdateObstacles(_units.ToArray());
         List<Vector3> shortestPathAsVector = Map.GetShortestPathTo(GetCurrentUnitPosition(), target);
 
         if (shortestPathAsVector == null || shortestPathAsVector.Count > GetCurrentUnitMovementPointLeft()) return;
@@ -154,7 +157,7 @@ public class CombatController : MonoBehaviour
     {
         if (_selectedAbility) Map.ClearPreviewRange();
 
-        Map.UpdateObstacles(_units);
+        Map.UpdateObstacles(_units.ToArray());
 
         var inRangePosition = Map.GetInRangePosition(unit.transform.position, ability.MinRange, ability.MaxRange);
         Map.PreviewRange(inRangePosition);
@@ -170,13 +173,13 @@ public class CombatController : MonoBehaviour
         Map.ClearPreviewRange();
     }
 
-    bool CanSelectedAbilityReach(Vector3 position)
-    {
-        var inRangePosition = Map.GetInRangePosition(_selectedAbilityUnit.transform.position, _selectedAbility.MinRange, _selectedAbility.MaxRange);
-        
-        return inRangePosition.Contains(new Vector3(position.x, 0, position.z));
-    }
 
+    void OnUnitDie(int instanceId)
+    {
+        _units.Remove(_units.Single((unit) => unit.GetInstanceID() == instanceId));
+
+        if (isCombatOver()) EndCombat();
+    }
 
     public void OnTileExit()
     {
@@ -192,7 +195,7 @@ public class CombatController : MonoBehaviour
 
     public void OnEndTurn(int instanceId)
     {
-        _currUnitIndex = _currUnitIndex == _units.Length - 1 ? 0 : _currUnitIndex + 1;
+        _currUnitIndex = _currUnitIndex == _units.Count - 1 ? 0 : _currUnitIndex + 1;
 
         if(_selectedAbility && instanceId == _selectedAbilityUnit.GetInstanceID())
         {
@@ -212,6 +215,32 @@ public class CombatController : MonoBehaviour
     Vector3 GetCurrentUnitPosition()
     {
         return _units[_currUnitIndex].transform.position;
+    }
+    #endregion
+
+    #region Utility
+
+
+    bool CanSelectedAbilityReach(Vector3 position)
+    {
+        var inRangePosition = Map.GetInRangePosition(_selectedAbilityUnit.transform.position, _selectedAbility.MinRange, _selectedAbility.MaxRange);
+
+        return inRangePosition.Contains(new Vector3(position.x, 0, position.z));
+    }
+
+    bool isCombatOver()
+    {
+        if(_units.Count <= 0) return true;
+        var firstUnitTeam = _units[0].GetComponent<CombatUnitController>().UnitInfo.TeamId;
+        
+        //If all units present in the combat are in the same team, then the combat is over
+        return _units.All((unit) => unit.GetComponent<CombatUnitController>().UnitInfo.TeamId == firstUnitTeam);
+    }
+
+    void EndCombat()
+    {
+        CustomEvents.UnselectAbilityEvent.Invoke();
+        CustomEvents.EndCombat.Invoke();
     }
     #endregion
 }

@@ -16,6 +16,7 @@ namespace Assets.Scripts.Events
         // int : GO InstanceID - bool : isPlayerControlledUnit
         public static GameEvent<int,bool> StartTurnEvent = new GameEvent<int,bool>();
         public static GameEvent<int> EndTurnEvent = new GameEvent<int>();
+        public static GameEvent EndCombat = new GameEvent();
 
         public static GameEvent<Ability,GameObject> SelectAbilityEvent = new GameEvent<Ability, GameObject>();
 
@@ -23,5 +24,7 @@ namespace Assets.Scripts.Events
         public static GameEvent UnselectAbilityEvent = new GameEvent();
 
         public static GameEvent<int, int> DamageUnitEvent = new GameEvent<int, int>();
+        // int : GO InstanceId
+        public static GameEvent<int> UnitDeathEvent = new GameEvent<int>();
     }
 }

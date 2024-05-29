@@ -1,9 +1,10 @@
-﻿using Assets.Scripts.Events;
+﻿using Assets.Scripts.Controller.Combat;
+using Assets.Scripts.Events;
 using UnityEngine;
 
 namespace Assets.Scripts.Controller
 {
-    public class PlayerInputController : MonoBehaviour
+    public class PlayerCombatInputController : CombatMonoBehavior
     {
         private bool _isCurrentUnitPlayerControlled = false;
         private int _currUnitInstanceId = 0;
@@ -11,14 +12,18 @@ namespace Assets.Scripts.Controller
         #region Event Subscription
 
         // Use this for initialization
-        void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             CustomEvents.StartTurnEvent.AddListener(OnStartTurn);
+            CustomEvents.EndCombat.AddListener(OnCombatEnd);
         }
 
-        private void OnDisable()
+        protected override void OnDisable()
         {
+            base.OnDisable();
             CustomEvents.StartTurnEvent.RemoveListener(OnStartTurn);
+            CustomEvents.EndCombat.RemoveListener(OnCombatEnd);
         }
 
         #endregion
@@ -39,6 +44,11 @@ namespace Assets.Scripts.Controller
         {
             _isCurrentUnitPlayerControlled = isPlayerControlled;
             _currUnitInstanceId = instanceId;
+        }
+
+        void OnCombatEnd()
+        {
+            enabled = false;
         }
         #endregion
     }
