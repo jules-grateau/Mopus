@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Tilemaps;
 using UnityEngine;
-using static Unity.VisualScripting.Member;
 
 namespace Assets.Scripts.Controller
 {
@@ -10,15 +8,17 @@ namespace Assets.Scripts.Controller
     {
         Dictionary<(float, float), CombatTileController> _mapTiles;
         List<(float,float)> _obstacles;
+        List<(float, float)> _units;
         Dictionary<(float, float), Node> _graph;
 
         List<Vector3> _currPreviewedPath = null;
         List<Vector3> _currPreviewRange = null;
 
-        public CombatMap(GameObject[] tiles, GameObject[] obstacles)
+        public CombatMap(GameObject[] tiles, GameObject[] obstacles, GameObject[] units)
         {
             InitializeMapTiles(tiles);
             InitializeObstacles(obstacles);
+            InitializeUnits(units);
             InitializeGraph();
         }
 
@@ -48,6 +48,16 @@ namespace Assets.Scripts.Controller
             }
         }
 
+        void InitializeUnits(GameObject[] units)
+        {
+            _units = new List<(float, float)>();
+
+            foreach (GameObject go in units)
+            {
+                _units.Add((go.transform.position.x, go.transform.position.z));
+            }
+        }
+
         void InitializeGraph()
         {
             _graph = new Dictionary<(float, float), Node>();
@@ -56,9 +66,9 @@ namespace Assets.Scripts.Controller
             {
                 (float, float) tilePos = (tile.Key.Item1, tile.Key.Item2);
                 
-                bool hasObstacle = _obstacles.Contains(tilePos);
+                bool isWalkable = tile.Value.IsWalkable && !_obstacles.Contains(tilePos) && !_units.Contains(tilePos);
 
-                _graph.Add(tile.Key, new Node(tile.Key.Item1, tile.Key.Item2, !hasObstacle && tile.Value.IsWalkable));
+                _graph.Add(tile.Key, new Node(tile.Key.Item1, tile.Key.Item2, isWalkable));
                 
 
             }
@@ -139,18 +149,23 @@ namespace Assets.Scripts.Controller
 
             (Dictionary<Node, float> distance, Dictionary<Node, Node> prev) = CalculateShortestPath(source, targetNode);
 
-            Node adjacentTarget = prev[targetNode];
+            //If node is not Walkable, then the prev[targetNode] will be unrealiable, since all targetNode distance is Infinity.
+            Node closestAdjacentToTarget = targetNode.isWalkable ? prev[targetNode] : targetNode.GetNeighbors().OrderBy((neighbor) => distance[neighbor]).First();
 
-
-            if (distance[adjacentTarget] == Mathf.Infinity)
+            if (distance[closestAdjacentToTarget] == Mathf.Infinity)
             {
                 Debug.Log($"Could not find path to combatTile : {target.x}-{target.z}");
                 return null;
 
             }
 
+            if (distance[closestAdjacentToTarget] == 0)
+            {
+                return null;
+            }
+
             LinkedList<Node> shortestPath = new LinkedList<Node>();
-            shortestPath.AddFirst(adjacentTarget);
+            shortestPath.AddFirst(closestAdjacentToTarget);
 
             while (prev[shortestPath.First()] != source)
             {
@@ -225,8 +240,6 @@ namespace Assets.Scripts.Controller
 
         (Dictionary<Node, float>, Dictionary<Node, Node>) CalculateShortestPath(Node source, Node target)
         {
-
-
             Dictionary<Node, float> distance = new Dictionary<Node, float>();
             Dictionary<Node, Node> prev = new Dictionary<Node, Node>();
             List<Node> unvisited = new List<Node>();
@@ -248,7 +261,7 @@ namespace Assets.Scripts.Controller
             {
                 Node closest = unvisited.OrderBy(node => distance[node]).First();
 
-                //If we reached the target, we can leave
+                //If we reach the target, we can stop searching
                 if (closest == target) break;
 
                 unvisited.Remove(closest);
@@ -276,36 +289,6 @@ namespace Assets.Scripts.Controller
                 distance.Add(node, node.DistanceTo(source, true));
             }
 
-            /*List<Node> unvisited = new List<Node>();
-
-            //Calculation Setup
-            distance.Add(source, 0f);
-
-            foreach (Node node in _graph.Values)
-            {
-                if (node != source)
-                {
-                    distance.Add(node, Mathf.Infinity);
-                }
-                unvisited.Add(node);
-            }
-
-            while (unvisited.Count > 0)
-            {
-                Node closest = unvisited.OrderBy(node => distance[node]).First();
-
-                unvisited.Remove(closest);
-
-                foreach (Node node in closest.GetNeighbors())
-                {
-                    float distanceTo = distance[closest] + closest.DistanceTo(node, true);
-                    if (distanceTo <= distance[node])
-                    {
-                        distance[node] = distanceTo;
-                    }
-                }
-            }*/
-
             return distance;
         }
     }
@@ -316,7 +299,7 @@ namespace Assets.Scripts.Controller
         public float x { get; }
         public float z { get; }
 
-        bool isWalkable;
+        public bool isWalkable { get; }
         public Node(float x, float z, bool isWalkable)
         {
             Neighbors = new List<Node>();

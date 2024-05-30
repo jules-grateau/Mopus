@@ -26,8 +26,9 @@ public class CombatController : CombatMonoBehavior
     {
         GameObject[] tiles = GameObject.FindGameObjectsWithTag("CombatTile");
         _units = GameObject.FindGameObjectsWithTag("Unit").ToList();
+        var _obstacles = new GameObject[] { };
 
-        Map = new CombatMap(tiles, _units.ToArray());
+        Map = new CombatMap(tiles, _obstacles, _units.ToArray());
 
         InitGameTurn();
     }
