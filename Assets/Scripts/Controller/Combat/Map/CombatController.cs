@@ -5,7 +5,6 @@ using Assets.Scripts.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEditor;
 using UnityEngine;
 
 public class CombatController : CombatMonoBehavior
@@ -43,15 +42,12 @@ public class CombatController : CombatMonoBehavior
     void InitGameTurn()
     {
         GameObject currGameObjet = _units[_currUnitIndex];
-        Debug.Log($"Starting turn of {currGameObjet.name}");
 
         CombatUnitController currCombatUnitController = currGameObjet.GetComponent<CombatUnitController>();
         _currUnitCombatStats = currCombatUnitController.UnitInfo.Stats;
         _currUnitUsedMovementPoint = 0;
 
         CustomEvents.StartTurnEvent.Invoke(currGameObjet.GetInstanceID(), currCombatUnitController.UnitInfo.IsPlayerControlled);
-
-        Debug.Log(IsCurrentUnitControlledByPlayer() ? "Current turn is player" : "Current turn is not player");
     }
 
 
@@ -87,14 +83,12 @@ public class CombatController : CombatMonoBehavior
     {
         //If it's our own lock, we don't consider the action to be locked
         if (guid == _guid) return;
-        Debug.Log($"Unit action locked by {guid}");
 
         _isUnitActionLocked = true;
     }
 
     void OnUnlockUnitAction()
     {
-        Debug.Log($"Unit action unlocked");
         _isUnitActionLocked = false;
     }
 
