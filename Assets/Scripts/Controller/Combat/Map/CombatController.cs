@@ -2,15 +2,23 @@ using Assets.Scripts.Controller;
 using Assets.Scripts.Controller.Combat;
 using Assets.Scripts.Controller.Types;
 using Assets.Scripts.Events;
-using Assets.Scripts.ScriptableObjets.Abilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class CombatController : CombatMonoBehavior
 {
-    public static CombatMap Map;
+    public static CombatController Instance { get => _instance; }
 
+    static CombatController _instance;
+    public CombatMap Map { get => _map; }
+    public List<GameObject> Units { get => _units; }
+
+    Guid _guid;
+
+    CombatMap _map;
     List<GameObject> _units;
 
     int _currUnitIndex = 0; 
@@ -18,17 +26,16 @@ public class CombatController : CombatMonoBehavior
     int _currUnitUsedMovementPoint = 0;
 
     bool _isUnitMoving = false;
-    Ability _selectedAbility;
-    GameObject _selectedAbilityUnit;
+    bool _isUnitActionLocked = false;
 
     // Start is called before the first frame update
     void Start()
     {
-        GameObject[] tiles = GameObject.FindGameObjectsWithTag("CombatTile");
         _units = GameObject.FindGameObjectsWithTag("Unit").ToList();
-        var _obstacles = new GameObject[] { };
+        _instance = this;
+        _guid = Guid.NewGuid();
 
-        Map = new CombatMap(tiles, _obstacles, _units.ToArray());
+        _map = new CombatMap();
 
         InitGameTurn();
     }
@@ -36,12 +43,15 @@ public class CombatController : CombatMonoBehavior
     void InitGameTurn()
     {
         GameObject currGameObjet = _units[_currUnitIndex];
+        Debug.Log($"Starting turn of {currGameObjet.name}");
 
         CombatUnitController currCombatUnitController = currGameObjet.GetComponent<CombatUnitController>();
         _currUnitCombatStats = currCombatUnitController.UnitInfo.Stats;
         _currUnitUsedMovementPoint = 0;
 
         CustomEvents.StartTurnEvent.Invoke(currGameObjet.GetInstanceID(), currCombatUnitController.UnitInfo.IsPlayerControlled);
+
+        Debug.Log(IsCurrentUnitControlledByPlayer() ? "Current turn is player" : "Current turn is not player");
     }
 
 
@@ -50,71 +60,53 @@ public class CombatController : CombatMonoBehavior
     protected override void OnEnable()
     {
         base.OnEnable();
-        CustomEvents.SelectAbilityEvent.AddListener(OnSelectAbility);
         CustomEvents.TileClickEvent.AddListener(OnTileClick);
         CustomEvents.TileHoverEvent.AddListener(OnTileHover);
         CustomEvents.TileExitEvent.AddListener(OnTileExit);
         CustomEvents.UnitMovementStatusEvent.AddListener(OnUnitMovementStatus);
         CustomEvents.EndTurnEvent.AddListener(OnEndTurn);
-        CustomEvents.UnitClickEvent.AddListener(OnUnitClick);
-        CustomEvents.UnselectAbilityEvent.AddListener(OnUnselectAbility);
         CustomEvents.UnitDeathEvent.AddListener(OnUnitDie);
+        CustomEvents.LockUnitAction.AddListener(OnLockUnitAction);
+        CustomEvents.UnlockUnitAction.AddListener(OnUnlockUnitAction);
     }
 
     protected override void OnDisable()
     {
         base.OnDisable();
-        CustomEvents.SelectAbilityEvent.RemoveListener(OnSelectAbility);
         CustomEvents.TileClickEvent.RemoveListener(OnTileClick);
         CustomEvents.TileHoverEvent.RemoveListener(OnTileHover);
         CustomEvents.TileExitEvent.RemoveListener(OnTileExit);
         CustomEvents.UnitMovementStatusEvent.RemoveListener(OnUnitMovementStatus);
         CustomEvents.EndTurnEvent.RemoveListener(OnEndTurn);
-        CustomEvents.UnitClickEvent.RemoveListener(OnUnitClick);
-        CustomEvents.UnselectAbilityEvent.RemoveListener(OnUnselectAbility);
         CustomEvents.UnitDeathEvent.RemoveListener(OnUnitDie);
+        CustomEvents.LockUnitAction.RemoveListener(OnLockUnitAction);
+        CustomEvents.UnlockUnitAction.RemoveListener(OnUnlockUnitAction);
+    }
+
+    void OnLockUnitAction(Guid guid)
+    {
+        //If it's our own lock, we don't consider the action to be locked
+        if (guid == _guid) return;
+        Debug.Log($"Unit action locked by {guid}");
+
+        _isUnitActionLocked = true;
+    }
+
+    void OnUnlockUnitAction()
+    {
+        Debug.Log($"Unit action unlocked");
+        _isUnitActionLocked = false;
     }
 
     void OnTileClick(Vector3 pos)
     {
-        if (_selectedAbility)
-        {
-            if(!CanSelectedAbilityReach(pos))
-            {
-                Debug.Log("Can't reach clicked tile");
-                CustomEvents.UnselectAbilityEvent.Invoke();
-                return;
-            }
-
-            GameObject target = _units.ToList().Find(unit => unit.transform.position.x == pos.x && unit.transform.position.z == pos.z);
-            HandleAbility(target);
-            return;
-        }
-
         HandleMovement(pos);
-    }
-
-    void OnUnitClick(int unitInstanceId)
-    {
-        if (!_selectedAbility) return;
-
-        GameObject target = _units.ToList().Find(unit => unit.gameObject.GetInstanceID() == unitInstanceId);
-
-        if (!CanSelectedAbilityReach(target.transform.position))
-        {
-            Debug.Log("Can't reach clicked unit");
-            CustomEvents.UnselectAbilityEvent.Invoke();
-            return;
-        }
-
-        HandleAbility(target);
     }
 
     void HandleMovement(Vector3 destination)
     {
-        if (_isUnitMoving) return;
+        if (_isUnitMoving || _isUnitActionLocked || !IsCurrentUnitControlledByPlayer()) return;
 
-        Map.UpdateObstacles(_units.ToArray());
         List<Vector3> shortestPathAsVector = Map.GetShortestPathTo(GetCurrentUnitPosition(), destination);
 
 
@@ -126,54 +118,17 @@ public class CombatController : CombatMonoBehavior
         Map.ClearPreviewPath();
     }
 
-    void HandleAbility(GameObject target)
-    {
-        if (target)
-        {
-            Debug.Log($"Hit target {target.gameObject.name} for {_selectedAbility.Damage} with {_selectedAbility.Name}");
-            CustomEvents.DamageUnitEvent.Invoke(target.gameObject.GetInstanceID(), _selectedAbility.Damage);
-        }
-        else
-        {
-            Debug.Log($"{_selectedAbility.Name} hit no one");
-        }
-
-        CustomEvents.UnselectAbilityEvent.Invoke();
-
-    }
 
     public void OnTileHover(Vector3 target)
     {
-        if (_isUnitMoving || _selectedAbility) return;
+        if (_isUnitMoving || _isUnitActionLocked || !IsCurrentUnitControlledByPlayer()) return;
 
-        Map.UpdateObstacles(_units.ToArray());
         List<Vector3> shortestPathAsVector = Map.GetShortestPathTo(GetCurrentUnitPosition(), target);
 
         if (shortestPathAsVector == null || shortestPathAsVector.Count > GetCurrentUnitMovementPointLeft()) return;
 
         Map.PreviewPath(shortestPathAsVector);
     }
-
-    void OnSelectAbility(Ability ability, GameObject unit)
-    {
-        if (_selectedAbility) Map.ClearPreviewRange();
-
-        Map.UpdateObstacles(_units.ToArray());
-
-        var inRangePosition = Map.GetInRangePosition(unit.transform.position, ability.MinRange, ability.MaxRange);
-        Map.PreviewRange(inRangePosition);
-
-        _selectedAbility = ability;
-        _selectedAbilityUnit = unit;
-    }
-
-    void OnUnselectAbility()
-    {
-        _selectedAbility = null;
-        _selectedAbilityUnit = null;
-        Map.ClearPreviewRange();
-    }
-
 
     void OnUnitDie(int instanceId)
     {
@@ -184,7 +139,7 @@ public class CombatController : CombatMonoBehavior
 
     public void OnTileExit()
     {
-        if (_isUnitMoving) return;
+        if (_isUnitMoving || _isUnitActionLocked) return;
 
         Map.ClearPreviewPath();
     }
@@ -196,12 +151,9 @@ public class CombatController : CombatMonoBehavior
 
     public void OnEndTurn(int instanceId)
     {
+        Debug.Log("End turn of " + instanceId);
         _currUnitIndex = _currUnitIndex == _units.Count - 1 ? 0 : _currUnitIndex + 1;
 
-        if(_selectedAbility && instanceId == _selectedAbilityUnit.GetInstanceID())
-        {
-            CustomEvents.UnselectAbilityEvent.Invoke();
-        }
         InitGameTurn();
     }
 
@@ -217,18 +169,14 @@ public class CombatController : CombatMonoBehavior
     {
         return _units[_currUnitIndex].transform.position;
     }
+
+    bool IsCurrentUnitControlledByPlayer()
+    {
+        return _units[_currUnitIndex].GetComponent<CombatUnitController>().UnitInfo.IsPlayerControlled;
+    }
     #endregion
 
     #region Utility
-
-
-    bool CanSelectedAbilityReach(Vector3 position)
-    {
-        var inRangePosition = Map.GetInRangePosition(_selectedAbilityUnit.transform.position, _selectedAbility.MinRange, _selectedAbility.MaxRange);
-
-        return inRangePosition.Contains(new Vector3(position.x, 0, position.z));
-    }
-
     bool isCombatOver()
     {
         if(_units.Count <= 0) return true;

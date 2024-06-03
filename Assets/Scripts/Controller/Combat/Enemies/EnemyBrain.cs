@@ -45,7 +45,7 @@ namespace Assets.Scripts.Controller.Combat.Enemies
 
             foreach(GameObject target in targets)
             {
-                var targetPath = CombatController.Map.GetShortestPathToAdjacent(gameObject.transform.position, target.transform.position);
+                var targetPath = CombatController.Instance.Map.GetShortestPathToAdjacent(gameObject.transform.position, target.transform.position);
                 if (shortestPath == null)
                 {
                     shortestPath = targetPath;

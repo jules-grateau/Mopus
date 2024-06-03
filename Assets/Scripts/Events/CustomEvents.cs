@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.ScriptableObjets.Abilities;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,7 +19,7 @@ namespace Assets.Scripts.Events
         public static GameEvent<int> EndTurnEvent = new GameEvent<int>();
         public static GameEvent EndCombat = new GameEvent();
 
-        public static GameEvent<Ability,GameObject> SelectAbilityEvent = new GameEvent<Ability, GameObject>();
+        public static GameEvent<Ability> SelectAbilityEvent = new GameEvent<Ability>();
 
         public static GameEvent<int> UnitClickEvent = new GameEvent<int>();
         public static GameEvent UnselectAbilityEvent = new GameEvent();
@@ -26,5 +27,8 @@ namespace Assets.Scripts.Events
         public static GameEvent<int, int> DamageUnitEvent = new GameEvent<int, int>();
         // int : GO InstanceId
         public static GameEvent<int> UnitDeathEvent = new GameEvent<int>();
+
+        public static GameEvent<Guid> LockUnitAction = new GameEvent<Guid>();
+        public static GameEvent UnlockUnitAction = new GameEvent();
     }
 }

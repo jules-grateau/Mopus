@@ -36,7 +36,7 @@ namespace Assets.Scripts.Controller.Combat.UI
 
         void OnClick()
         {
-            CustomEvents.SelectAbilityEvent.Invoke(_ability, _currentTurnUnit);
+            CustomEvents.SelectAbilityEvent.Invoke(_ability);
         }
     }
 }

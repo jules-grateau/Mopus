@@ -2,6 +2,7 @@
 using Assets.Scripts.Controller.Combat.UI;
 using Assets.Scripts.Controller.Types;
 using Assets.Scripts.Events;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -16,7 +17,10 @@ namespace Assets.Scripts.Controller
         [SerializeField]
         private UnitInfo _unitInfo;
 
+        Guid _guid;
+
         bool _isMoving = false;
+        bool _isUnitActionLocked = false;
         int _currHp = 0; 
         //TODO : Externalize these kind of UI visualisation
         GameObject _floatingTextPrefabs;
@@ -26,6 +30,10 @@ namespace Assets.Scripts.Controller
 
         Canvas _canvas;
 
+        private void Start()
+        {
+            _guid = Guid.NewGuid();
+        }
         private void Awake()
         {
             _canvas = FindObjectOfType<Canvas>();
@@ -45,6 +53,8 @@ namespace Assets.Scripts.Controller
             base.OnEnable();
             CustomEvents.UnitMovementEvent.AddListener(MoveTo);
             CustomEvents.DamageUnitEvent.AddListener(OnUnitTakeDamage);
+            CustomEvents.LockUnitAction.AddListener(OnLockUnitAction);
+            CustomEvents.UnlockUnitAction.AddListener(OnUnlockUnitAction);
         }
 
         protected override void OnDisable()
@@ -52,20 +62,38 @@ namespace Assets.Scripts.Controller
             base.OnDisable();
             CustomEvents.UnitMovementEvent.RemoveListener(MoveTo);
             CustomEvents.DamageUnitEvent.RemoveListener(OnUnitTakeDamage);
+            CustomEvents.LockUnitAction.RemoveListener(OnLockUnitAction);
+            CustomEvents.UnlockUnitAction.RemoveListener(OnUnlockUnitAction);
 
+        }
+
+        void OnLockUnitAction(Guid guid)
+        {
+            //If it's our own lock, we don't consider the action to be locked
+            if (guid == _guid) return;
+
+            _isUnitActionLocked = true;
+        }
+
+        void OnUnlockUnitAction()
+        {
+            _isUnitActionLocked = false;
         }
 
         private void MoveTo(int instanceId, List<Vector3> path)
         {
             if (gameObject.GetInstanceID() != instanceId) return;
-            if (_isMoving) return;
+            if (_isMoving || _isUnitActionLocked) return;
             StartCoroutine(MoveThrought(path));
+            
         }
 
         IEnumerator MoveThrought(List<Vector3> path)
         {
             _isMoving = true;
-            CustomEvents.UnitMovementStatusEvent.Invoke(gameObject.GetInstanceID(),true);
+            CustomEvents.UnitMovementStatusEvent.Invoke(gameObject.GetInstanceID(), true);
+            CustomEvents.LockUnitAction.Invoke(_guid);
+
             while (path.Count > 0)
             {
                 Vector3 tile = path[0];
@@ -73,8 +101,10 @@ namespace Assets.Scripts.Controller
                 path.Remove(tile);
                 yield return new WaitForSeconds(0.1f);
             }
+
             _isMoving = false;
-            CustomEvents.UnitMovementStatusEvent.Invoke(gameObject.GetInstanceID(),false);
+            CustomEvents.UnlockUnitAction.Invoke();
+            CustomEvents.UnitMovementStatusEvent.Invoke(gameObject.GetInstanceID(), false);
         }
 
         void OnUnitTakeDamage(int instanceId, int damage)

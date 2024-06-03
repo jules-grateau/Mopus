@@ -25,7 +25,7 @@ namespace Assets.Scripts.Controller.Combat.UI
             CustomEvents.UnselectAbilityEvent.RemoveListener(OnUnselectAbility);
         }
 
-        void OnSelectAbility(Ability ability, GameObject unit)
+        void OnSelectAbility(Ability ability)
         {
             _icon.gameObject.SetActive(true);
             _icon.sprite = ability.Icon;

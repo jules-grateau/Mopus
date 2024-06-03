@@ -7,54 +7,44 @@ namespace Assets.Scripts.Controller
     public class CombatMap
     {
         Dictionary<(float, float), CombatTileController> _mapTiles;
-        List<(float,float)> _obstacles;
-        List<(float, float)> _units;
+        Dictionary<(float, float), GameObject> _units;
         Dictionary<(float, float), Node> _graph;
 
         List<Vector3> _currPreviewedPath = null;
         List<Vector3> _currPreviewRange = null;
 
-        public CombatMap(GameObject[] tiles, GameObject[] obstacles, GameObject[] units)
+        public CombatMap()
         {
-            InitializeMapTiles(tiles);
-            InitializeObstacles(obstacles);
-            InitializeUnits(units);
+            InitializeMapTiles();
+            InitializeUnits();
             InitializeGraph();
         }
 
-        public void UpdateObstacles(GameObject[] obstacles)
+        public void ResyncMap()
         {
-            InitializeObstacles(obstacles);
+            InitializeUnits();
             InitializeGraph();
         }
 
-        void InitializeMapTiles(GameObject[] tiles)
+        void InitializeMapTiles()
         {
             _mapTiles = new Dictionary<(float, float), CombatTileController>();
+            var combatTiles = GameObject.FindGameObjectsWithTag("CombatTile");
 
-            foreach (GameObject go in tiles)
+            foreach (GameObject go in combatTiles)
             {
                 _mapTiles.Add((go.transform.position.x, go.transform.position.z), go.GetComponent<CombatTileController>());
             }
         }
 
-        void InitializeObstacles(GameObject[] obstacles)
+        void InitializeUnits()
         {
-            _obstacles = new List<(float, float)>();
+            _units = new Dictionary<(float, float), GameObject>();
+            var inCombatUnits = GameObject.FindGameObjectsWithTag("Unit").ToList();
 
-            foreach (GameObject go in obstacles)
+            foreach (GameObject go in inCombatUnits)
             {
-                _obstacles.Add((go.transform.position.x, go.transform.position.z));
-            }
-        }
-
-        void InitializeUnits(GameObject[] units)
-        {
-            _units = new List<(float, float)>();
-
-            foreach (GameObject go in units)
-            {
-                _units.Add((go.transform.position.x, go.transform.position.z));
+                _units.Add((go.transform.position.x, go.transform.position.z), go);
             }
         }
 
@@ -66,7 +56,7 @@ namespace Assets.Scripts.Controller
             {
                 (float, float) tilePos = (tile.Key.Item1, tile.Key.Item2);
                 
-                bool isWalkable = tile.Value.IsWalkable && !_obstacles.Contains(tilePos) && !_units.Contains(tilePos);
+                bool isWalkable = tile.Value.IsWalkable && !_units.Keys.Contains(tilePos);
 
                 _graph.Add(tile.Key, new Node(tile.Key.Item1, tile.Key.Item2, isWalkable));
                 
@@ -104,6 +94,9 @@ namespace Assets.Scripts.Controller
         // Return shortest path to the target, null if not reacheable
         public List<Vector3> GetShortestPathTo(Vector3 origin, Vector3 target)
         {
+            //Before calculation, we make sure the map is synced
+            ResyncMap();
+
             Vector3 currUnitPosition = origin;
 
             Node source = _graph[(currUnitPosition.x, currUnitPosition.z)];
@@ -140,6 +133,9 @@ namespace Assets.Scripts.Controller
         // Return shortest path to adjacents tile to the target, null if not reachable
         public List<Vector3> GetShortestPathToAdjacent(Vector3 origin, Vector3 target)
         {
+            //Before calculation, we make sure the map is synced
+            ResyncMap();
+
             Vector3 currUnitPosition = origin;
 
             Node source = _graph[(currUnitPosition.x, currUnitPosition.z)];
@@ -290,6 +286,20 @@ namespace Assets.Scripts.Controller
             }
 
             return distance;
+        }
+
+        public GameObject GetUnitAtPos(float x, float z)
+        {
+            InitializeUnits();
+
+            return _units.GetValueOrDefault((x, z));
+        }
+
+        public GameObject GetUnitByInstanceId(int instanceId)
+        {
+            InitializeUnits();
+
+            return _units.Values.First((unit) => unit.GetInstanceID() == instanceId);
         }
     }
 
