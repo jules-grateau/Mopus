@@ -80,12 +80,11 @@ namespace Assets.Scripts.Controller.Combat.Enemies
         {
             foreach(Ability ability in _abilities)
             {
-                var inRangeUnits = CombatController.Instance.Map.GetUnitsInRange(gameObject.transform.position, ability.MinRange, ability.MaxRange);
+                var inRangeUnits = CombatController.Instance.Map.GetUnitsInRange(gameObject.transform.position, ability.MinRange, ability.MaxRange).Where(unit => unit.GetComponent<CombatUnitController>().UnitInfo.TeamId != _combatUnitController.UnitInfo.TeamId).ToList();
 
                 if(inRangeUnits.Count > 0)
                 {
                     UseAbility(ability, inRangeUnits[0]);
-                    break;
                 }
             }
 
