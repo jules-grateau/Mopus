@@ -301,6 +301,21 @@ namespace Assets.Scripts.Controller
 
             return _units.Values.First((unit) => unit.GetInstanceID() == instanceId);
         }
+
+        public List<GameObject> GetUnitsInRange(Vector3 origin, int minRange, int maxRange)
+        {
+            ResyncMap();
+            var range = GetInRangePosition(origin, minRange, maxRange);
+            var inRangeUnits = new List<GameObject>();
+
+            foreach(Vector3 inRangePosition in range)
+            {
+                GameObject inRangeGO;
+                if(_units.TryGetValue((inRangePosition.x, inRangePosition.z), out inRangeGO)) inRangeUnits.Add(inRangeGO);
+            }
+            
+            return inRangeUnits;
+        }
     }
 
     class Node
