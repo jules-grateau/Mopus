@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.Events;
 using Assets.Scripts.ScriptableObjets.Abilities;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -34,7 +35,6 @@ namespace Assets.Scripts.Controller.Combat.Enemies
         void OnTurnStart(int instanceId, bool isPlayerControlled) 
         {
             if (!_combatUnitController) return;
-
             if (instanceId != gameObject.GetInstanceID() || isPlayerControlled) return;
 
             HandleMovement();
@@ -88,7 +88,15 @@ namespace Assets.Scripts.Controller.Combat.Enemies
                 }
             }
 
+            StartCoroutine(EndTurn());
+        }
+
+        //TemporaryFix to avoid multiple action being received at once 
+        IEnumerator EndTurn()
+        {
+            yield return new WaitForSeconds(0.1f);
             CustomEvents.EndTurnEvent.Invoke(gameObject.GetInstanceID());
+
         }
 
         void UseAbility(Ability ability, GameObject target)

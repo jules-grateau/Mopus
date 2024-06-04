@@ -16,14 +16,12 @@ namespace Assets.Scripts.Controller
         {
             base.OnEnable();
             CustomEvents.StartTurnEvent.AddListener(OnStartTurn);
-            CustomEvents.EndCombat.AddListener(OnCombatEnd);
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             CustomEvents.StartTurnEvent.RemoveListener(OnStartTurn);
-            CustomEvents.EndCombat.RemoveListener(OnCombatEnd);
         }
 
         #endregion
@@ -44,11 +42,6 @@ namespace Assets.Scripts.Controller
         {
             _isCurrentUnitPlayerControlled = isPlayerControlled;
             _currUnitInstanceId = instanceId;
-        }
-
-        void OnCombatEnd()
-        {
-            enabled = false;
         }
         #endregion
     }

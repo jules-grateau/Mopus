@@ -108,8 +108,7 @@ namespace Assets.Scripts.Controller
 
 
             if (distance[targetNode] == Mathf.Infinity)
-            {
-                Debug.Log($"Could not find path to combatTile : {target.x}-{target.z}");
+            { 
                 return null;
 
             }

@@ -114,9 +114,9 @@ namespace Assets.Scripts.Controller
             _currHp = damage >= _currHp ? 0 : _currHp - damage;
 
             GameObject floatingDamageText = Instantiate(_floatingTextPrefabs,transform);
-            floatingDamageText.GetComponent<FloatingCombatTextAnimation>().Init(damage);
 
-            _unitInfoUIInstance.GetComponent<UnitInfoUIController>().UpdateCurrHp(_currHp);
+            floatingDamageText.GetComponent<FloatingCombatTextAnimation>().Init(damage);
+            if(_unitInfoUIInstance) _unitInfoUIInstance.GetComponent<UnitInfoUIController>().UpdateCurrHp(_currHp);
 
             if (_currHp == 0) Death();
         }
